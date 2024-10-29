@@ -94,6 +94,7 @@ process.load('HeavyIonsAnalysis.EventAnalysis.l1object_cfi')
 
 process.load('HeavyIonsAnalysis.EventAnalysis.skimanalysis_cfi')
 
+process.load('HeavyIonsAnalysis.EventAnalysis.particleFlowAnalyser_cfi')
 
 #Dont know the triggerlist for the pp reference so comment out (for now)
 #from HeavyIonsAnalysis.EventAnalysis.hltobject_cfi import trigger_list_mc
@@ -130,7 +131,8 @@ process.forest = cms.Path(
 #    process.hltobject +
     process.l1object +
     process.ggHiNtuplizer +
-    process.trackSequencePP
+    process.trackSequencePP +
+    process.particleFlowAnalyser
 )
 
 

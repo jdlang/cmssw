@@ -132,7 +132,7 @@ process.forest = cms.Path(
     process.hltobject +
     process.l1object +
     process.trackSequencePbPb +
-    #process.particleFlowAnalyser +
+    process.particleFlowAnalyser +
     process.ggHiNtuplizer +
     #process.zdcdigi +
     #process.QWzdcreco +
