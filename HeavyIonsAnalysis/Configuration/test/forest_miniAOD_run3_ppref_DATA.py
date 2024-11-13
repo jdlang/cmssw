@@ -67,7 +67,7 @@ process.hiEvtAnalyzer.doMC = cms.bool(False) # Turn off general MC info
 process.hiEvtAnalyzer.doHiMC = cms.bool(False) # Turn off HI specific MC info
 process.hiEvtAnalyzer.doHFfilters = cms.bool(False) # Disable HF filters for ppRef
 process.load('HeavyIonsAnalysis.EventAnalysis.hltanalysis_cfi')
-#process.load('HeavyIonsAnalysis.EventAnalysis.hltobject_cfi')
+process.load('HeavyIonsAnalysis.EventAnalysis.hltobject_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.l1object_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.skimanalysis_cfi')
 
@@ -75,9 +75,8 @@ process.load('HeavyIonsAnalysis.EventAnalysis.skimanalysis_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.particleFlowAnalyser_cfi')
 
 ### HLT list
-# FIXME: Do we have an updated trigger list?
-#from HeavyIonsAnalysis.EventAnalysis.hltobject_cfi import trigger_list_data_2023_skimmed
-#process.hltobject.triggerNames = trigger_list_data_2023_skimmed
+from HeavyIonsAnalysis.EventAnalysis.hltobject_cfi import trigger_list_data_2024
+process.hltobject.triggerNames = trigger_list_data_2024
 
 ### Tracks
 process.load('HeavyIonsAnalysis.TrackAnalysis.TrackAnalyzers_cff')
@@ -102,7 +101,7 @@ process.forest = cms.Path(
     process.HiForestInfo +
     process.hltanalysis *
     process.hiEvtAnalyzer *
-    #process.hltobject + # FIXME: Uncomment once HLT list updated
+    process.hltobject +
     process.l1object +
     process.ggHiNtuplizer +
     process.zdcSequencePP +
