@@ -2,66 +2,54 @@
 # Input: miniAOD
 # Type: data
 
+###############################################################################
+# VERSION CONFIG
+###############################################################################
+
+### Era
 import FWCore.ParameterSet.Config as cms
 from Configuration.Eras.Era_Run3_pp_on_PbPb_2024_cff import Run3_pp_on_PbPb_2024
 process = cms.Process('HiForest',Run3_pp_on_PbPb_2024)
 
-###############################################################################
-
-# HiForest info
+### HiForest info
 process.load("HeavyIonsAnalysis.EventAnalysis.HiForestInfo_cfi")
 process.HiForestInfo.info = cms.vstring("HiForest, miniAOD, 141X, data")
 
-# import subprocess, os
-# version = subprocess.check_output(
-#     ['git', '-C', os.path.expandvars('$CMSSW_BASE/src'), 'describe', '--tags'])
-# if version == '':
-#     version = 'no git info'
-# process.HiForestInfo.HiForestVersion = cms.string(version)
-
-###############################################################################
-
-# input files
-process.source = cms.Source("PoolSource",
-    duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
-    fileNames = cms.untracked.vstring(
-        '/store/hidata/HIRun2024A/HIPhysicsRawPrime2/MINIAOD/PromptReco-v1/000/387/908/00000/93a76f4f-4e90-4357-9a7f-3c64a1be8e29.root'
-    ), 
-)
-
-# number of events to process, set to -1 to process all events
-process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(20)
-    )
-
-###############################################################################
-
-# load Global Tag, geometry, etc.
+### Global Tag (GT), geometry, sequences, etc.
 process.load('Configuration.Geometry.GeometryDB_cff')
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load('FWCore.MessageService.MessageLogger_cfi')
-
-
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '141X_dataRun3_Prompt_v3', '')
 process.HiForestInfo.GlobalTagLabel = process.GlobalTag.globaltag
 
 ###############################################################################
-
-# Define centrality binning
-process.load("RecoHI.HiCentralityAlgos.CentralityBin_cfi")
-process.centralityBin.Centrality = cms.InputTag("hiCentrality")
-process.centralityBin.centralityVariable = cms.string("HFtowers")
-
+# INPUT / OUTPUT
 ###############################################################################
 
-# root output
-process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("HiForestMiniAOD.root"))
+### Input files (this is overwritten by CRAB config)
+process.source = cms.Source("PoolSource",
+    duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
+    fileNames = cms.untracked.vstring(
+        # File from /HIForward0/HIRun2024A-PromptReco-v1/MINIAOD :
+        'root://xrootd-cms.infn.it//store/hidata/HIRun2024A/HIPhysicsRawPrime0/MINIAOD/PromptReco-v1/000/387/973/00000/080a5222-42e7-40c4-9685-e52543dfe74e.root'
+    ),
+    lumisToProcess = cms.untracked.VLuminosityBlockRange('387973:1-387973:max'),
+)
+# number of events to process, set to -1 to process all events
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(100)
+)
 
-# # edm output for debugging purposes
+### Output file name (this is preserved by CRAB config)
+process.TFileService = cms.Service(
+    "TFileService",
+    fileName = cms.string("HiForestMiniAOD.root")
+)
+
+### Debug: edm output for debugging purposes
 # process.output = cms.OutputModule(
 #     "PoolOutputModule",
 #     fileName = cms.untracked.string('HiForestEDM.root'),
@@ -69,60 +57,64 @@ process.TFileService = cms.Service("TFileService",
 #         'keep *',
 #         )
 #     )
-
 # process.output_path = cms.EndPath(process.output)
 
 ###############################################################################
+# ANALYSIS CONFIG
+###############################################################################
 
-# event analysis
-process.load('HeavyIonsAnalysis.EventAnalysis.hltanalysis_cfi')
+### Centrality binning
+process.load("RecoHI.HiCentralityAlgos.CentralityBin_cfi")
+process.centralityBin.Centrality = cms.InputTag("hiCentrality")
+process.centralityBin.centralityVariable = cms.string("HFtowers")
+
+### Event analysis
 process.load('HeavyIonsAnalysis.EventAnalysis.hievtanalyzer_data_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.hltanalysis_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.skimanalysis_cfi')
-process.load('HeavyIonsAnalysis.EventAnalysis.hltobject_cfi')
+#process.load('HeavyIonsAnalysis.EventAnalysis.hltobject_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.l1object_cfi')
 
-#process.hiEvtAnalyzer.doCentrality = cms.bool(False)
-#process.hiEvtAnalyzer.doHFfilters = cms.bool(False)
-
+### HLT list
 # FIXME: Do we have an updated trigger list?
 #from HeavyIonsAnalysis.EventAnalysis.hltobject_cfi import trigger_list_data_2023_skimmed
 #process.hltobject.triggerNames = trigger_list_data_2023_skimmed
 
+### Particle flow
 process.load('HeavyIonsAnalysis.EventAnalysis.particleFlowAnalyser_cfi')
-################################
-# electrons, photons, muons
+
+### Electrons, photons, muons
 process.load('HeavyIonsAnalysis.EGMAnalysis.ggHiNtuplizer_cfi')
 process.ggHiNtuplizer.doMuons = cms.bool(False)
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
-################################
-# jet reco sequence
+
+### Jet reco sequence
 process.load('HeavyIonsAnalysis.JetAnalysis.akCs4PFJetSequence_pponPbPb_data_cff')
 process.load('HeavyIonsAnalysis.JetAnalysis.akPu4CaloJetSequence_pponPbPb_data_cff')
 process.akPu4CaloJetAnalyzer.doHiJetID = True
-################################
-# tracks
+
+### Tracks
 process.load("HeavyIonsAnalysis.TrackAnalysis.TrackAnalyzers_cff")
-# muons (FTW)
+
+### Muons
 process.load("HeavyIonsAnalysis.MuonAnalysis.unpackedMuons_cfi")
 process.load("HeavyIonsAnalysis.MuonAnalysis.muonAnalyzer_cfi")
-###############################################################################
 
-#########################
-# ZDC RecHit Producer && Analyzer
-#########################
+### ZDC RecHit Producer && Analyzer
 # to prevent crash related to HcalSeverityLevelComputerRcd record
 process.load("RecoLocalCalo.HcalRecAlgos.hcalRecAlgoESProd_cfi")
 process.load('HeavyIonsAnalysis.ZDCAnalysis.ZDCAnalyzersPbPb_cff')
 
 ###############################################################################
-# main forest sequence
+# MAIN FOREST SEQUENCE
+###############################################################################
+
 process.forest = cms.Path(
     process.HiForestInfo +
     process.centralityBin +
     process.hiEvtAnalyzer +
     process.hltanalysis +
-    process.hltobject +
+    #process.hltobject + # FIXME: Uncomment once HLT list updated
     process.l1object +
     process.trackSequencePbPb +
     process.particleFlowAnalyser +
@@ -131,9 +123,41 @@ process.forest = cms.Path(
     process.unpackedMuons +
     process.muonAnalyzer +
     process.akPu4CaloJetAnalyzer
-    )
+)
 
-#customisation
+###############################################################################
+# EVENT SELECTION / FILTERING
+###############################################################################
+
+### Filters
+process.load('HeavyIonsAnalysis.EventAnalysis.collisionEventSelection_cff')
+process.pclusterCompatibilityFilter = cms.Path(process.clusterCompatibilityFilter)
+process.pprimaryVertexFilter = cms.Path(process.primaryVertexFilter)
+process.load('HeavyIonsAnalysis.EventAnalysis.hffilter_cfi')
+process.load('HeavyIonsAnalysis.EventAnalysis.hffilterPF_cfi')
+process.pAna = cms.EndPath(process.skimanalysis)
+
+### HLT filter settings
+#from HLTrigger.HLTfilters.hltHighLevel_cfi import hltHighLevel
+#process.hltfilter = hltHighLevel.clone(
+#    HLTPaths = [
+#        #"HLT_HIZeroBias_v4",                                                     
+#        "HLT_HIMinimumBias_v2",
+#    ]
+#)
+#process.filterSequence = cms.Sequence(
+#    process.hltfilter
+#)
+#
+#process.superFilterPath = cms.Path(process.filterSequence)
+#process.skimanalysis.superFilters = cms.vstring("superFilterPath")
+#
+#for path in process.paths:
+#    getattr(process, path)._seq = process.filterSequence * getattr(process,path)._seq
+
+###############################################################################
+# CUSTOMISATION
+###############################################################################
 
 # Select the types of jets filled
 addR3Jets = False
@@ -148,7 +172,6 @@ doWTARecluster = True        # Add jet phi and eta for WTA axis
 
 # this is only for non-reclustered jets
 addCandidateTagging = False
-
 
 if addR3Jets or addR3FlowJets or addR4Jets or addR4FlowJets or addUnsubtractedR4Jets :
     process.load("HeavyIonsAnalysis.JetAnalysis.extraJets_cff")
@@ -200,7 +223,6 @@ if addR3Jets or addR3FlowJets or addR4Jets or addR4FlowJets or addUnsubtractedR4
         process.ak4PFJetAnalyzer.jetName = "ak04PF"
         process.forest += process.unsubtractedJetR4 * process.ak4PFJetAnalyzer
 
-
 if addCandidateTagging:
     process.load("HeavyIonsAnalysis.JetAnalysis.candidateBtaggingMiniAOD_cff")
 
@@ -224,32 +246,3 @@ if addCandidateTagging:
     process.akCs4PFJetAnalyzer.jetTag = "updatedPatJets"
 
     process.forest.insert(1,process.candidateBtagging*process.updatedPatJets)
-
-#########################
-# Event Selection -> add the needed filters here
-#########################
-
-process.load('HeavyIonsAnalysis.EventAnalysis.collisionEventSelection_cff')
-process.pclusterCompatibilityFilter = cms.Path(process.clusterCompatibilityFilter)
-process.pprimaryVertexFilter = cms.Path(process.primaryVertexFilter)
-process.load('HeavyIonsAnalysis.EventAnalysis.hffilter_cfi')
-process.load('HeavyIonsAnalysis.EventAnalysis.hffilterPF_cfi')
-process.pAna = cms.EndPath(process.skimanalysis)
-
-#from HLTrigger.HLTfilters.hltHighLevel_cfi import hltHighLevel
-#process.hltfilter = hltHighLevel.clone(
-#    HLTPaths = [
-#        #"HLT_HIZeroBias_v4",                                                     
-#        "HLT_HIMinimumBias_v2",
-#    ]
-#)
-#process.filterSequence = cms.Sequence(
-#    process.hltfilter
-#)
-#
-#process.superFilterPath = cms.Path(process.filterSequence)
-#process.skimanalysis.superFilters = cms.vstring("superFilterPath")
-#
-#for path in process.paths:
-#    getattr(process, path)._seq = process.filterSequence * getattr(process,path)._seq
-
