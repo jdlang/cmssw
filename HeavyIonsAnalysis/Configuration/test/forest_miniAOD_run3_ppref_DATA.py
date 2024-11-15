@@ -3,141 +3,105 @@
 # Type: Data
 # Input: miniAOD
 
+###############################################################################
+# VERSION CONFIG
+###############################################################################
+
+### Era
 import FWCore.ParameterSet.Config as cms
 from Configuration.Eras.Era_Run3_2024_ppRef_cff import Run3_2024_ppRef
 process = cms.Process('HiForest', Run3_2024_ppRef)
 process.options = cms.untracked.PSet()
 
-#####################################################################################
-# HiForest labelling info
-#####################################################################################
-
+### HiForest info
 process.load("HeavyIonsAnalysis.EventAnalysis.HiForestInfo_cfi")
 process.HiForestInfo.info = cms.vstring("HiForest, miniAOD, 141X, data")
+
+### Global Tag (GT), geometry, sequences, etc.
+process.load('Configuration.StandardSequences.Services_cff')
+process.load('Configuration.Geometry.GeometryDB_cff')
+process.load('Configuration.StandardSequences.MagneticField_38T_cff')
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
+process.load('FWCore.MessageService.MessageLogger_cfi')
+from Configuration.AlCa.GlobalTag import GlobalTag
+process.GlobalTag = GlobalTag(process.GlobalTag, '141X_dataRun3_Prompt_v3', '')
+process.HiForestInfo.GlobalTagLabel = process.GlobalTag.globaltag
 
 #####################################################################################
 # Input source
 #####################################################################################
 
+### Input files (this is overwritten by CRAB config)
 process.source = cms.Source("PoolSource",
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     fileNames = cms.untracked.vstring(
         '/store/data/Run2024J/PPRefHardProbes4/MINIAOD/PromptReco-v1/000/387/570/00000/c855cc0a-2470-4978-acbb-e4618979cf0e.root'
     )
 )
-
-# Number of events we want to process, -1 = all events
+# Number of events to process, set to -1 to process all events
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(20)
 )
 
-#####################################################################################
-# Load Global Tag, Geometry, etc.
-#####################################################################################
+### Output file name (this is preserved by CRAB config)
+process.TFileService = cms.Service(
+    "TFileService",
+    fileName = cms.string("HiForestMiniAOD.root")
+)
 
-process.load('Configuration.StandardSequences.Services_cff')
-process.load('Configuration.Geometry.GeometryDB_cff')
-process.load('Configuration.StandardSequences.MagneticField_38T_cff')
-process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-process.load('FWCore.MessageService.MessageLogger_cfi')
+###############################################################################
+# ANALYSIS CONFIG
+###############################################################################
 
-#GlobalTag used in Prompt RECO
-#https://cms-conddb.cern.ch/cmsDbBrowser/list/Prod/gts/132X_dataRun3_Prompt_v3
-from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '141X_dataRun3_Prompt_v3', '')
-process.HiForestInfo.GlobalTagLabel = process.GlobalTag.globaltag
-
-# FIXME: Old calibration here, might need to update
-# Commenting out until understood
-#process.GlobalTag.toGet.extend([
-#    cms.PSet(record = cms.string("BTagTrackProbability3DRcd"),
-#             tag = cms.string("JPcalib_MC94X_2017pp_v2"),
-#             connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS")
-#
-#         )
-#      ])
-
-#####################################################################################
-# Define tree output
-#####################################################################################
-
-process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("HiForestMiniAOD.root"))
-
-#####################################################################################
-# Additional Reconstruction and Analysis: Main Body
-#####################################################################################
-
-#############################
-# Jets
-#############################
+### Jets
 process.load("HeavyIonsAnalysis.JetAnalysis.ak4PFJetSequence_ppref_data_cff")
-#####################################################################################
 
-############################
-# Event Analysis
-############################
-# use data version to avoid PbPb MC
+### Event Analysis
+# Use data version to avoid PbPb MC
 process.load('HeavyIonsAnalysis.EventAnalysis.hievtanalyzer_data_cfi')
 process.hiEvtAnalyzer.Vertex = cms.InputTag("offlineSlimmedPrimaryVertices")
 process.hiEvtAnalyzer.doCentrality = cms.bool(False)
 process.hiEvtAnalyzer.doEvtPlane = cms.bool(False)
 process.hiEvtAnalyzer.doEvtPlaneFlat = cms.bool(False)
-#Turn off MC info
-process.hiEvtAnalyzer.doMC = cms.bool(False) # general MC info
-process.hiEvtAnalyzer.doHiMC = cms.bool(False) # HI specific MC info
+process.hiEvtAnalyzer.doMC = cms.bool(False) # Turn off general MC info
+process.hiEvtAnalyzer.doHiMC = cms.bool(False) # Turn off HI specific MC info
 process.hiEvtAnalyzer.doHFfilters = cms.bool(False) # Disable HF filters for ppRef
-
 process.load('HeavyIonsAnalysis.EventAnalysis.hltanalysis_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.hltobject_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.l1object_cfi')
-
 process.load('HeavyIonsAnalysis.EventAnalysis.skimanalysis_cfi')
 
+### Particle flow
 process.load('HeavyIonsAnalysis.EventAnalysis.particleFlowAnalyser_cfi')
 
-# FIXME: Do we have an updated trigger list?
-#from HeavyIonsAnalysis.EventAnalysis.hltobject_cfi import trigger_list_data_2023_skimmed
-#process.hltobject.triggerNames = trigger_list_data_2023_skimmed
+### HLT list
+from HeavyIonsAnalysis.EventAnalysis.hltobject_cfi import trigger_list_data_2024
+process.hltobject.triggerNames = trigger_list_data_2024
 
-#####################################################################################
-
-#########################
-# Track Analyzer
-#########################
+### Tracks
 process.load('HeavyIonsAnalysis.TrackAnalysis.TrackAnalyzers_cff')
 
-#####################################################################################
-
-#####################
-# photons
-######################
+### Electrons, photons, muons
 process.load('HeavyIonsAnalysis.EGMAnalysis.ggHiNtuplizer_cfi')
 process.ggHiNtuplizer.doGenParticles = cms.bool(False)
 process.ggHiNtuplizer.doMuons = cms.bool(False) # unpackedMuons collection not found from file
 process.ggHiNtuplizer.useValMapIso = cms.bool(False) # True here causes seg fault
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 
-####################################################################################
-
-#########################
-# ZDC RecHit Producer && Analyzer
-#########################
+### ZDC RecHit Producer && Analyzer
 # to prevent crash related to HcalSeverityLevelComputerRcd record
 process.load("RecoLocalCalo.HcalRecAlgos.hcalRecAlgoESProd_cfi")
 process.load('HeavyIonsAnalysis.ZDCAnalysis.ZDCAnalyzersPP_cff')
 
 ###############################################################################
-
-#########################
-# Main analysis list
-#########################
+# MAIN FOREST SEQUENCE
+###############################################################################
 
 process.forest = cms.Path(
     process.HiForestInfo +
     process.hltanalysis *
     process.hiEvtAnalyzer *
-#    process.hltobject +
+    process.hltobject +
     process.l1object +
     process.ggHiNtuplizer +
     process.zdcSequencePP +
@@ -145,10 +109,14 @@ process.forest = cms.Path(
     process.particleFlowAnalyser
 )
 
+###############################################################################
+# EVENT SELECTION / FILTERING
+###############################################################################
 
-# Schedule definition
+### Schedule definition
 process.pAna = cms.EndPath(process.skimanalysis)
 
+### Primary vertex filter
 process.primaryVertexFilter = cms.EDFilter("VertexSelector",
     src = cms.InputTag("offlineSlimmedPrimaryVertices"),
     cut = cms.string("!isFake && abs(z) <= 25 && position.Rho <= 2"), #in miniADO trackSize()==0, however there is no influence.
@@ -156,8 +124,9 @@ process.primaryVertexFilter = cms.EDFilter("VertexSelector",
 )
 process.pprimaryVertexFilter = cms.Path(process.primaryVertexFilter)
 
-
-#####################################################################################
+###############################################################################
+# CUSTOMISATION
+###############################################################################
 
 addR2Jets = False
 addR3Jets = False
@@ -208,4 +177,4 @@ if addR2Jets or addR3Jets or addR4Jets or addR8Jets:
         process.forest += process.jetsR8 * process.ak8PFJetAnalyzer
 
 else:
-    process.forest+= process.ak4PFJetAnalyzer
+    process.forest += process.ak4PFJetAnalyzer
