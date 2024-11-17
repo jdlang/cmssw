@@ -15,7 +15,36 @@ process = cms.Process('HiForest',Run3_pp_on_PbPb_2024)
 process.load("HeavyIonsAnalysis.EventAnalysis.HiForestInfo_cfi")
 process.HiForestInfo.info = cms.vstring("HiForest, miniAOD, 141X, data")
 
+<<<<<<< HEAD
 ### Global Tag (GT), geometry, sequences, etc.
+=======
+# import subprocess, os
+# version = subprocess.check_output(
+#     ['git', '-C', os.path.expandvars('$CMSSW_BASE/src'), 'describe', '--tags'])
+# if version == '':
+#     version = 'no git info'
+# process.HiForestInfo.HiForestVersion = cms.string(version)
+
+###############################################################################
+
+# input files
+process.source = cms.Source("PoolSource",
+    duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
+    fileNames = cms.untracked.vstring(
+        # '/store/hidata/HIRun2024A/HIPhysicsRawPrime2/MINIAOD/PromptReco-v1/000/387/908/00000/93a76f4f-4e90-4357-9a7f-3c64a1be8e29.root'
+        'file:/eos/cms/store/group/phys_heavyions/wangj/RECO2024/miniaod_PhysicsHIPhysicsRawPrime0_388056_ZB.root'
+    ), 
+)
+
+# number of events to process, set to -1 to process all events
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(20)
+    )
+
+###############################################################################
+
+# load Global Tag, geometry, etc.
+>>>>>>> 8d15024c08f9538599afa2fc294f49e113a24b54
 process.load('Configuration.Geometry.GeometryDB_cff')
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
@@ -25,6 +54,21 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '141X_dataRun3_Prompt_v3', '')
 process.HiForestInfo.GlobalTagLabel = process.GlobalTag.globaltag
 
+## --> only use this starting from 388000
+process.es_prefer = cms.ESPrefer('HcalTextCalibrations','es_ascii')
+process.es_ascii = cms.ESSource('HcalTextCalibrations',
+   input = cms.VPSet(
+      cms.PSet(
+         object = cms.string('Gains'),
+         file   = cms.FileInPath('HeavyIonsAnalysis/Configuration/data/ZDCConditions_1400V/DumpGainsForUpload_AllChannels.txt')
+      ),
+      cms.PSet(
+        object = cms.string('TPChannelParameters'),
+        file   = cms.FileInPath('HeavyIonsAnalysis/Configuration/data/ZDCConditions_1400V/DumpTPChannelParameters_Run387473.txt')
+      ),
+   )
+)
+## <--
 ###############################################################################
 # INPUT / OUTPUT
 ###############################################################################

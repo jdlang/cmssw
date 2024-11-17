@@ -28,6 +28,21 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '141X_dataRun3_Prompt_v3', '')
 process.HiForestInfo.GlobalTagLabel = process.GlobalTag.globaltag
 
+## --> only use this starting from 388000
+process.es_prefer = cms.ESPrefer('HcalTextCalibrations','es_ascii')
+process.es_ascii = cms.ESSource('HcalTextCalibrations',
+   input = cms.VPSet(
+      cms.PSet(
+         object = cms.string('Gains'),
+         file   = cms.FileInPath('HeavyIonsAnalysis/Configuration/data/ZDCConditions_1400V/DumpGainsForUpload_AllChannels.txt')
+      ),
+      cms.PSet(
+        object = cms.string('TPChannelParameters'),
+        file   = cms.FileInPath('HeavyIonsAnalysis/Configuration/data/ZDCConditions_1400V/DumpTPChannelParameters_Run387473.txt')
+      ),
+   )
+)
+## <--
 ###############################################################################
 # INPUT / OUTPUT
 ###############################################################################
@@ -37,9 +52,10 @@ process.source = cms.Source("PoolSource",
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     fileNames = cms.untracked.vstring(
         # File from /HIForward0/HIRun2024A-PromptReco-v1/MINIAOD :
-        'root://xrootd-cms.infn.it//store/hidata/HIRun2024A/HIForward0/MINIAOD/PromptReco-v1/000/388/000/00000/0df29e8c-46f7-43c2-8f8f-03babc9abe25.root'
+#        'root://xrootd-cms.infn.it//store/hidata/HIRun2024A/HIForward0/MINIAOD/PromptReco-v1/000/388/000/00000/0df29e8c-46f7-43c2-8f8f-03babc9abe25.root'
+        'root://eoscms.cern.ch//store/group/phys_heavyions/wangj/RECO2024/miniaod_PhysicsHIForward0_388171/reco_run388171_ls0001_streamPhysicsHIForward0_StorageManager.root'
     ),
-    lumisToProcess = cms.untracked.VLuminosityBlockRange('388000:1-388000:max')
+#    lumisToProcess = cms.untracked.VLuminosityBlockRange('388000:1-388000:max')
 )
 # Number of events to process, set to -1 to process all events
 process.maxEvents = cms.untracked.PSet(
@@ -79,6 +95,7 @@ process.load('HeavyIonsAnalysis.EventAnalysis.hltanalysis_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.skimanalysis_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.hltobject_cfi')
 process.load('HeavyIonsAnalysis.EventAnalysis.l1object_cfi')
+process.load('L1Trigger.L1TNtuples.l1MetFilterRecoTree_cfi')
 
 ### HLT list
 from HeavyIonsAnalysis.EventAnalysis.hltobject_cfi import trigger_list_data_2024
@@ -118,6 +135,7 @@ process.forest = cms.Path(
     process.hltanalysis +
     process.hltobject +
     process.l1object +
+    process.l1MetFilterRecoTree +
     process.ggHiNtuplizer +
     process.trackSequencePP +
     process.zdcSequencePbPb +
