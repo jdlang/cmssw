@@ -9,11 +9,11 @@ username = getUsername()
 ###############################################################################
 # INPUT/OUTPUT SETTINGS
 
-pd = 'HIPhysicsRawPrime0'
-jobTag = '2025PbPb_' + pd
+pdNum = '0'
+jobTag = '2025PbPb_HIPhysicsRawPrime' + pdNum
 cmsswConfig = 'forest_CMSSWConfig_Run3_2025PbPb_PromptReco.py'
 
-inputDAS = '/' + pd + '/PbPbRun2025-PromptReco-v1/MINIAOD'
+inputDAS = '/HIPhysicsRawPrime' + pdNum + '/PbPbRun2025-PromptReco-v1/MINIAOD'
 inputDatabase = 'global'
 
 output = '/store/group/phys_heavyions/' + username + '/Run3_2025PbPb_PromptRecoForests/'
@@ -35,10 +35,11 @@ config.JobType.allowUndistributedCMSSW = True
 
 config.Data.inputDataset = inputDAS
 config.Data.inputDBS = inputDatabase
-config.Data.lumiMask = '/eos/user/c/cmsdqm/www/CAF/certification/Collisions25HI/DCSOnly_JSONS/dailyDCSOnlyJSON/Collisions25HI_5p36TeV_Latest.json'
 config.Data.splitting = 'EventAwareLumiBased'
 config.Data.unitsPerJob = 10000
 config.Data.totalUnits = -1
+config.Data.lumiMask = '/eos/user/c/cmsdqm/www/CAF/certification/Collisions25HI/DCSOnly_JSONS/dailyDCSOnlyJSON/Collisions25HI_5p36TeV_Latest.json'
+#config.Data.runRange = '399465-400265'
 
 config.Data.outLFNDirBase = output
 config.Data.publication = False

@@ -9,12 +9,12 @@ username = getUsername()
 ###############################################################################
 # INPUT/OUTPUT SETTINGS
 
-pd = 'HIPhysicsRawPrime0'
-run = '399306'
-jobTag = '2025PbPb_' + pd + '_' + run
+pdNum = '0'
+runRange = '399465-400265'
+jobTag = '2025PbPb_HIPhysicsRawPrime' + pdNum + '_' + runRange
 cmsswConfig = 'forest_CMSSWConfig_Run3_2025PbPb_PromptReco.py'
 
-inputFilelist = 'filelist_' + pd + '_' + run + '.txt'
+inputFilelist = 'filelist_HIPhysicsRawPrime' + pdNum + '_' + run + '.txt'
 
 output = '/store/group/phys_heavyions/' + username + '/Run3_2025PbPb_ExpressRecoForests/'
 outputServer = 'T2_CH_CERN'
@@ -38,6 +38,8 @@ config.Data.userInputFiles = open(inputFilelist).readlines()
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
 config.Data.totalUnits = -1
+#config.Data.lumiMask = '/eos/user/c/cmsdqm/www/CAF/certification/Collisions25HI/DCSOnly_JSONS/dailyDCSOnlyJSON/Collisions25HI_5p36TeV_Latest.json'
+config.Data.runRange = runRange
 
 config.Data.outLFNDirBase = output
 config.Data.publication = False
